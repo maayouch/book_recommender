@@ -1,7 +1,16 @@
+
+data/
+
 __pycache__/
 *.pyc
+
 .venv/
 venv/
+
 .env
-data/raw/
+
 .ipynb_checkpoints/
+
+.DS_Store
+
+.vscode/
