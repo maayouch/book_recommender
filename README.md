@@ -105,18 +105,6 @@ jupyter notebook notebooks/
 
 Run the notebooks in order. Results are reproducible (`random_state = 42`). Tested with Python 3.13, pandas 3.0, scikit-learn 1.9.
 
-## Limitations and next steps
-
-- The recommenders use book metadata only: the 6 million ratings are not used yet to learn individual tastes.
-- Recommendations are judged qualitatively on examples; there is no quantitative evaluation yet.
-- k-means creates hard boundaries: a book at the edge of a cluster cannot be matched with a close book from a neighbouring cluster.
-- Books from the same series or franchise can still crowd the results.
-
-Next steps:
-- [ ] Item-based collaborative filtering on `ratings.csv`
-- [ ] Offline evaluation with a train/test split (precision@k, recall@k)
-- [ ] Hybrid model combining content and ratings
-- [ ] 2D visualisation of the clusters (t-SNE or UMAP)
 
 ## Author
 
