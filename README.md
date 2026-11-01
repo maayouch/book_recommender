@@ -1,6 +1,10 @@
 # Book Recommender
 
-A book recommendation system built in Python on the [Goodbooks-10k](https://github.com/zygmuntz/goodbooks-10k) dataset (10,000 books, ~6 million ratings). It compares a popularity baseline, a content-based recommender (TF-IDF + cosine similarity) and a k-means clustering of books into genres.
+A book recommendation system built in Python on the [Goodbooks-10k](https://github.com/zygmuntz/goodbooks-10k) dataset (10,000 books, ~6 million ratings). It builds four recommenders (popularity, content-based, k-means clustering, item-based collaborative filtering) and compares them with an offline evaluation protocol.
+
+**Main result**: on 5,000 test readers, item-based collaborative filtering recommends books the reader actually liked in **32.5%** of cases (precision@10), against 21.4% for the content-based model and 7.7% for popularity.
+
+![Model comparison](figures/model_comparison.png)
 
 **Example**: books recommended for *Pride and Prejudice*, using k-means clusters and excluding books by the same author:
 
@@ -18,6 +22,8 @@ A book recommendation system built in Python on the [Goodbooks-10k](https://gith
 - **Popularity baseline** using a weighted rating (IMDb-style) to avoid favouring books with only a few ratings.
 - **Content-based recommender**: TF-IDF on authors and Goodreads tags, cosine similarity (equivalent to a k-nearest-neighbours search).
 - **k-means clustering**: tag cleaning, TF-IDF, truncated SVD (LSA), choice of k with the elbow method and the silhouette score. The 15 clusters match recognisable genres (classics, crime, epic fantasy, young adult, comics…) without the model ever being given a genre.
+- **Item-based collaborative filtering** on the ratings, with sparse nearest-neighbour similarity matrices.
+- **Offline evaluation**: per-user train/test split, precision@10, recall@10 and catalogue coverage, hyperparameters tuned on separate validation users, no data leakage.
 
 ## Dataset
 
@@ -70,6 +76,24 @@ Neither the elbow method nor the silhouette score shows a clear optimum, which i
 
 Recommendations are then made within the book's cluster, ranked by cosine similarity (example at the top of this page).
 
+### 4. Collaborative filtering and evaluation — [`04_collaborative_filtering_and_evaluation.ipynb`](notebooks/04_collaborative_filtering_and_evaluation.ipynb)
+
+**Protocol**: a book is "liked" if rated 4 or 5 stars. For every reader, 20% of their liked books are hidden (test set); models only see the remaining ratings and recommend 10 unseen books. The number of neighbours *k* of each model is tuned on 5,000 validation readers, and final scores are computed on 5,000 different test readers.
+
+**Item-based collaborative filtering**: two books are similar when the same readers liked them (cosine similarity on the user × book matrix). Each book keeps its *k* = 5 closest neighbours, and a reader's score for a book is the sum of its similarities with the books they liked. The content-based and k-means models are evaluated with the same scoring, only the similarity changes.
+
+| Model | Precision@10 | Recall@10 | Catalogue coverage |
+| --- | --- | --- | --- |
+| Random | 0.2% | 0.1% | 99% |
+| Popularity | 7.7% | 5.1% | 0.4% |
+| k-means | 20.4% | 13.7% | 76% |
+| Content-based | 21.4% | 14.5% | 65% |
+| **Item-based CF** | **32.5%** | **21.8%** | 53% |
+
+- Ratings carry information that metadata does not: who reads what together.
+- Popularity is a weak baseline here: readers of this dataset have already rated most bestsellers, and it recommends the same 40 books to everyone.
+- Precision values are underestimates (an unread book is not necessarily a bad recommendation); they are meant for comparing models.
+
 ## Project structure
 
 ```
@@ -79,7 +103,8 @@ book_recommender/
 ├── notebooks/
 │   ├── 01_exploration.ipynb
 │   ├── 02_popularity_and_content_based.ipynb
-│   └── 03_kmeans_clustering.ipynb
+│   ├── 03_kmeans_clustering.ipynb
+│   └── 04_collaborative_filtering_and_evaluation.ipynb
 ├── download_data.sh
 ├── requirements.txt
 └── README.md
